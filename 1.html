@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reframed | The Elephants</title>
+    <script>
+        (function(d) {
+          var config = {
+            kitId: 'vub7iix',
+            scriptTimeout: 3000,
+            async: true
+          },
+          h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+        })(document);
+      </script>
+    <style>
+        body {
+            cursor: none; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            background: #ffffff; /* 💡 오버레이의 배경색과 일치 */
+            margin: 0;
+            position: relative;
+            font-family: sans-serif;
+            font-family: "pretendard", sans-serif;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        /* 💡 커스텀 커서 스타일 */
+        .custom-cursor {
+            width: 20px; 
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ffffff; 
+            position: fixed; 
+            pointer-events: none; 
+            z-index: 9999; 
+            transform: translate(-50%, -50%); 
+            transition: transform 0.1s ease-out; 
+            mix-blend-mode: difference; 
+            opacity: 1; 
+            will-change: transform; 
+        }
+
+        /* 기존 이미지 슬라이더 스타일 */
+        .comparison-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            z-index: 50;
+            cursor: none; 
+        }
+        
+        /* 💡 애니메이션을 위한 오버레이 스타일 (흰색 마스크) */
+        .reveal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 55; /* 이미지 위에 위치 */
+            
+            /* 💡 초기 상태: 화면 중앙에서 0% 크기의 원으로 가려져 있음 */
+            clip-path: circle(0% at 50% 50%); 
+            background: #ffffff; /* 흰색 배경으로 전체 화면을 가림 */
+            transition: clip-path 1.5s ease-out; /* 애니메이션 시간 */
+        }
+        
+        .comparison-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        
+        /* 💡 image-before: 50% 분할 상태를 CSS로 유지 */
+        .image-before {
+            z-index: 10;
+            clip-path: inset(0 50% 0 0); 
+        }
+        .image-after {
+            z-index: 1;
+        }
+        
+        .slider-handle {
+            position: absolute;
+            z-index: 60; /* 💡 오버레이(55)보다 위에 위치하여 항상 보입니다. */
+            top: 0;
+            left: 50%;
+            width: 0px; 
+            height: 100%;
+            background-color: transparent; 
+            cursor: none; 
+            transform: translateX(-50%);
+            transition: left 0.15s ease-out; 
+        }
+        .slider-handle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px; 
+        height: 120px; 
+        background: none; 
+        background-image: url('r2.png'); 
+        background-size: contain; 
+        background-repeat: no-repeat; 
+        background-position: center; 
+        border-radius: 50%;
+        box-shadow: 0 0 20px rgba(255, 236, 197, 0.8);
+        z-index: 21; 
+    }
+        
+        /* 설명 텍스트 스타일 */
+        .image-description {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 10px 15px;
+            background: #F1E4CA;
+            color: #000000;
+            border-radius: 0px;
+            font-size: 1.2rem;
+            white-space: nowrap; 
+            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+            opacity: 0; 
+            transition: opacity 0.3s ease, left 0.15s ease, right 0.15s ease;
+            pointer-events: none; 
+            max-width: 500px;
+            font-family: helvetica-neue-lt-pro-cond, sans-serif;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .description-before {
+            left: 70px; 
+        }
+
+        .description-after {
+            right: 70px; 
+            color: #F1E4CA;
+            background: #000000;
+        }
+        
+        ::selection {
+            background: transparent; 
+            color: inherit;
+        }
+
+        /* 💡 'X' 버튼 스타일 */
+        .close-button {
+            position: fixed; 
+            top: 20px;
+            right: 20px;
+            width: 40px; 
+            height: 40px;
+            border-radius: 50%; 
+            background-color: #F1E4CA; 
+            color: #000; 
+            font-size: 2rem; 
+            font-family: helvetica-neue-lt-pro, sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer; 
+            z-index: 100; 
+            transition: transform 0.1s; 
+        }
+        
+        /* 👇 'X' 텍스트만 미세 조정 */
+        .x-text {
+            display: inline-block;
+            transform: translateY(-3px); 
+        }
+        
+        .close-button:hover {
+            transform: scale(1.1); 
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor" id="custom-cursor"></div>
+    
+    <div id="three-container"></div>
+    
+    <div class="comparison-container" id="my-container">
+        <div class="reveal-overlay" id="reveal-overlay">
+            <img class="image-before" src="web-source/1.jpg" alt="Before Image"> 
+            <img class="image-after" src="web-source/1-1.jpg" alt="After Image">
+        </div>
+        
+        <div class="slider-handle" id="my-slider">
+             <div class="image-description description-before" id="desc-before">
+                </div>
+            <div class="image-description description-after" id="desc-after">
+                </div>
+        </div>
+    </div>
+
+    <div class="close-button" id="closeButton"><span class="x-text">x</span></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('my-container');
+        const slider = document.getElementById('my-slider');
+        const imageBefore = container.querySelector('.image-before');
+        const imageAfter = container.querySelector('.image-after'); 
+        const revealOverlay = document.getElementById('reveal-overlay'); // 💡 오버레이 요소
+        
+        const descBefore = document.getElementById('desc-before');
+        const descAfter = document.getElementById('desc-after');
+
+        const customCursor = document.getElementById('custom-cursor');
+        const closeButton = document.getElementById('closeButton');
+
+        // --- 설명 내용 ---
+        const textBefore = 'Salvador Dalí, The Elephants, 1948.<br><span style="font-size:1rem;font-family: pretendard, sans-serif; font-weight: 500; font-style: normal;">살바도르 달리, 코끼리, 1948.';
+        const textAfter = 'George Miller, Mad Max: Fury Road, 2015.<br><span style="font-size:1rem;font-family: pretendard, sans-serif; font-weight: 500; font-style: normal;">조지 밀러, 매드맥스: 분노의 도로, 2015.';
+        
+        descBefore.innerHTML = textBefore;
+        descAfter.innerHTML = textAfter;
+
+        let isDragging = false; 
+        const threshold = 60; 
+        let animationComplete = false; // 💡 애니메이션 완료 상태 추적 변수
+
+        // 커스텀 커서 위치 업데이트 함수
+        const updateCursor = (x, y) => {
+            customCursor.style.left = `${x}px`;
+            customCursor.style.top = `${y}px`;
+        };
+        
+        const onDrag = (e) => {
+            if (!animationComplete) return; // 💡 애니메이션 완료 전에는 드래그 차단
+            
+            if (!isDragging) return; 
+            
+            let clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+            if (clientX === undefined) return;
+
+            const rect = container.getBoundingClientRect();
+            let newX = clientX - rect.left;
+            
+            if (newX < 0) newX = 0;
+            if (newX > rect.width) newX = rect.width;
+            
+            const percentage = (newX / rect.width) * 100;
+            
+            slider.style.left = percentage + '%';
+            imageBefore.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+            
+            if (percentage >= threshold) { 
+                descBefore.style.opacity = '1';
+                descAfter.style.opacity = '0';
+            } 
+            else if (percentage <= (100 - threshold)) { 
+                descBefore.style.opacity = '0';
+                descAfter.style.opacity = '1';
+            } 
+            else {
+                descBefore.style.opacity = '0';
+                descAfter.style.opacity = '0';
+            }
+        };
+        
+        document.addEventListener('mousemove', (e) => {
+            updateCursor(e.clientX, e.clientY);
+            if (isDragging) { onDrag(e); }
+            const isOverSlider = slider.contains(e.target);
+            const isOverCloseButton = closeButton.contains(e.target);
+            if ((isOverSlider || isOverCloseButton) && !isDragging) {
+                customCursor.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            } else if (!isDragging) {
+                customCursor.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) { updateCursor(e.touches[0].clientX, e.touches[0].clientY); }
+            if (isDragging) { onDrag(e); }
+        }, { passive: true });
+        
+        const startDrag = (e) => { 
+            if (!animationComplete) return; 
+            isDragging = true; 
+            e.preventDefault(); 
+            document.body.style.cursor = 'none'; 
+            customCursor.style.transform = 'translate(-50%, -50%) scale(1.2)'; 
+        };
+        
+        const stopDrag = () => { 
+            isDragging = false; 
+            document.body.style.cursor = ''; 
+            customCursor.style.transform = 'translate(-50%, -50%) scale(1)'; 
+        };
+
+        slider.addEventListener('mousedown', startDrag);
+        document.addEventListener('mouseup', stopDrag); 
+        slider.addEventListener('touchstart', (e) => {
+            startDrag(e);
+            onDrag(e);
+        }, { passive: true });
+        document.addEventListener('touchend', stopDrag, { passive: true });
+        closeButton.addEventListener('click', () => {
+            window.location.href = 'index.html'; 
+        });
+
+
+        // 💡 --- 확장 애니메이션 실행 로직 ---
+        const runRevealAnimation = () => {
+            
+            // 1. 애니메이션 목표: 오버레이의 clip-path를 확장하여 내부의 분할된 이미지를 드러냄
+            // CSS에서 이미 clip-path: circle(0% at 50% 50%)가 적용되어 화면 전체를 흰색으로 가리고 있습니다.
+            const finalClipPath = `circle(120% at 50% 50%)`;
+
+            // 2. DOM 업데이트 후 애니메이션 시작
+            requestAnimationFrame(() => {
+                revealOverlay.style.clipPath = finalClipPath;
+            });
+
+            // 3. 애니메이션 완료 후 실행 (CSS transition 시간 1.5s에 맞춥니다.)
+            setTimeout(() => {
+                animationComplete = true; // 애니메이션 완료, 드래그 활성화
+                
+                // 💡 오버레이 요소의 clip-path를 제거하고 z-index를 낮춰 완전히 비활성화합니다.
+                revealOverlay.style.clipPath = 'none';
+                revealOverlay.style.zIndex = '1'; 
+                
+                // 💡 나머지 초기 설정 복구 (이미 CSS에서 설정된 50% 분할 상태를 유지)
+                const initialPercentage = 50;
+                slider.style.left = initialPercentage + '%';
+                imageBefore.style.clipPath = `inset(0 ${100 - initialPercentage}% 0 0)`;
+                descBefore.style.opacity = '0'; 
+                descAfter.style.opacity = '0'; 
+                
+            }, 500); 
+        };
+        
+        // 페이지 로드 시 애니메이션 실행
+        runRevealAnimation();
+    });
+</script>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+            }
+        }
+    </script>
+</body>
+</html>
